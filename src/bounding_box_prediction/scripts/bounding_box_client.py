@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 from bounding_box_prediction.srv import BoundingBoxPrediction
@@ -17,15 +17,10 @@ def bounding_box_client():
     rospy.wait_for_service('predict_bounding_box')
     try:
         predict_bounding_box = rospy.ServiceProxy('predict_bounding_box', BoundingBoxPrediction)
-        cv_image_gray = cv2.imread('/home/abdalraheem/PycharmProjects/GRVC_repo/Event_based_DL_model/new_dataset/Day_1/1564641316222536269.png', cv2.IMREAD_GRAYSCALE)
-
+        cv_image_gray = cv2.imread('/home/abdalraheem/Desktop/Ijjeh.png', cv2.IMREAD_GRAYSCALE)
         ros_image = bridge.cv2_to_imgmsg(cv_image_gray, encoding="mono8")
-
-	# cv2.imshow('test', cv_image_gray)
-	# cv2.waitKey(1000)
-	# cv2.destroyAllWindows()
         response = predict_bounding_box(ros_image)
-        print("Bounding Box Prediction Result:", response)
+        print("Bounding Box Prediction Result: ", response)
 
     except rospy.ServiceException as e:
         print("Service call failed:", e)

@@ -1,32 +1,42 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import rospy
 from bounding_box_prediction.srv import BoundingBoxPrediction
 from sensor_msgs.msg import Image
 import tensorflow as tf  
+from keras.models import load_model
 import time
 from cv_bridge import CvBridge
 import sys
-sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
-sys.path.remove('/home/abdalraheem/catkin_ws_ijjeh/devel/lib/python2.7/dist-packages')
+import cv2
+import numpy as np
 
 
-model = tf.keras.models.load_model('/home/abdalraheem/PycharmProjects/GRVC_repo/Event_based_DL_model/Trained_models/Detection_models/checkpoints/detection_model.h5')
+tf.config.set_visible_devices([], 'GPU')
+
+# sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
+# sys.path.remove('/home/abdalraheem/catkin_ws_ijjeh/devel/lib/python2.7/dist-packages')
+
+
+model = load_model('/home/abdalraheem/catkin_ws/src/bounding_box_prediction/dl_models/detection_model.h5')
 model.summary()
+
 bridge = CvBridge()
 
 def handle_bounding_box_prediction(req):
-    # t1 = time.time()
     cv_image = bridge.imgmsg_to_cv2(req.image, desired_encoding="mono8")
+    cv_image = cv2.resize(cv_image, (346,260))
+    # cv2.imshow('test', cv_image)
+    # cv2.waitKey(2000)
+    # cv2.destroyAllWindows()
+    cv_image = np.expand_dims(cv_image, axis=-1)
+    cv_image = np.expand_dims(cv_image, axis=0)
     class_pred, bbox_pred = model.predict(cv_image)
     xmin, ymin, xmax, ymax = bbox_pred[0]    
     xmin = round(xmin * 346)
     ymin = round(ymin * 260)
     xmax = round(xmax * 346)
     ymax = round(ymax * 260)
-    # prediction_result = (10, 20, 30, 40)
-    # xmin, ymin, xmax, ymax = 10, 20, 30, 40
-    # print('time :', time.time()-t1)	
     return xmin, ymin, xmax, ymax
 
 def bounding_box_server():
